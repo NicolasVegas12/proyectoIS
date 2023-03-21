@@ -1,0 +1,338 @@
+{% extends "plantilla.html" %}
+{% block title %} Boutique | Orden de Compra {% endblock title %}
+
+
+{% block css %} 
+<style>
+    .table thead th,.table td, .table th{
+        vertical-align: middle;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+{% load crispy_forms_tags %}
+<div class="p-3">
+    <div class="card card-info mx-4 my-4">
+        <div class="card-header">
+            <h1 class="card-title">AGREGAR ORDEN DE COMPRA</h1>
+            {{variable}}
+        </div>
+        <div class="card-body">
+            <form method="post">
+            {% csrf_token %}
+            <div class="row">                
+                <div class="col-12 col-lg-6">
+                    {{ form.codigo|as_crispy_field }}
+                </div>
+                <div class="col-12 col-lg-6">
+                    {{ form.estado|as_crispy_field }}
+                </div>
+                <div class="col-12 col-lg-6">
+                    {{ form.trabajador|as_crispy_field }}
+                </div>
+                <div class="col-12 col-lg-6">
+                    {{ form.proveedor|as_crispy_field }}
+                </div>
+                <div class="col-12 col-lg-3">
+                    {{ form.formaPago|as_crispy_field }}
+                </div>
+                <div class="col-12 col-lg-3">
+                    {{ form.fechaEmision|as_crispy_field }}
+                </div>
+                <div class="col-12 col-lg-3">
+                    {{ form.fechaEntrega |as_crispy_field }}
+                </div>
+                <div class="col-12 col-lg-3">
+                    {{ form.tipoMoneda|as_crispy_field }}
+                </div>
+                <div class="col-12 col-lg-4">
+                    {{ form.tasaCambio|as_crispy_field }}
+                </div>     
+                <div class="col-12 col-lg-4">
+                    {{ form.tasaIgv|as_crispy_field }}
+                </div>
+                <div class="col-12 col-lg-4">
+                    {{ form.tipoDocumento|as_crispy_field }}
+                </div>  
+            </div>
+            <hr class="my-2" style="background-color: #c4c4c4;">
+            <div class="row py-2">
+                <div class="col-12 text-center">
+                    <h5>Detalle de Orden de Compra</h5>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-12 pb-3">
+                    <div class="d-flex justify-content-end">
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">Agregar Producto</button>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-12">
+                    <table class="table" >
+                        <thead>
+                          <tr>
+                            <th scope="col">Acciones</th>
+                            <th scope="col">Código</th>
+                            <th scope="col">Producto</th>
+                            <th scope="col">Precio Unitario</th>                            
+                            <th scope="col">Cantidad</th>
+                            <th scope="col">Precio</th>
+                            <th scope="col">Descuento Unitario</th>
+                            <th scope="col">Precio Sin IGV</th>
+                            <th scope="col">Precio IGV (<span id="spanIGV">{{form.tasaIgv.value}}</span>)</th> 
+                          </tr>
+                        </thead>
+                        <!-- <tfoot>
+                            <tr>
+                              <td colspan="7"></td>
+                              <td><strong>Sub Total:</strong></td>
+                              <td><span id="sub-total">0.00</span></td>
+                            </tr>
+                            <tr>
+                                <td colspan="7"></td>
+                                <td ><strong>Descuento:</strong></td>
+                                <td><span id="descuento">0.00</span></td>
+                            </tr>
+                            <tr>
+                                <td colspan="7"></td>
+                                <td><strong>Total:</strong></td>
+                                <td><span id="totales">0.00</span></td>
+                            </tr>
+                        </tfoot> -->
+                        <tbody id="tableProductos">
+                        </tbody> 
+                      </table>
+                </div>
+            </div>
+            <div class="d-flex justify-content-end pt-3">
+                <a href="{% url 'listarordenCompra' %}" class="btn btn-secondary">Cancelar</a> &nbsp;
+                <button type="submit" class="btn btn-primary">Guardar</button>
+            </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<!-- Modal -->
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Lista Productos</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <label for="productoSelected">Producto</label>
+            <select id="productoSelected" name="productoSelected" class="form-select" aria-label="Default select example" onchange="getStockSelected()">
+                <option value="-1" selected disabled>Selecciona un Producto</option>
+                {% if list_product %}
+                    {% for itemproducto in list_product %}
+                        <option value="{{itemproducto.idProducto}}_{{itemproducto.nombre}}_{{itemproducto.precioUnitario}}_{{itemproducto.stock}}_{{itemproducto.codigo}}">{{itemproducto.nombre}}</option>
+                    {% endfor %}
+                {% else %}
+                {% endif %}
+            </select>
+            <div class="py-3 text-center">
+                <h6>STOCK Disponible: - <span id="stockSelected"></span>-</h6>
+            </div>
+            <div>
+                <label for="cantidadSelected">Cantidad</label>
+                <input id="cantidadSelected" name="cantidadSelected" type="number" class="form-control" value="1" min="1" step="1" max="100">
+            </div>
+            
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary" onclick="agregarTabla()">Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+{% endblock%} 
+
+{% block js %}
+    <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    {% if messages %}
+        {% for m in messages %}
+            <script>
+                Swal.fire({
+                "title": "Warning",
+                "text":"{{m}}",
+                "icon":"info"
+                })
+            </script>
+        {% endfor %}
+    {% endif %}
+    <script>
+        document.getElementById('spanIGV').innerHTML=parseFloat(document.getElementById('id_tasaIgv').value).toFixed(2);
+        const selectElement = document.getElementById('id_tasaCambio');
+        selectElement.addEventListener('change', (event) => {
+            actualizarMontos()
+        });
+        const selectElement2 = document.getElementById('id_tasaIgv');
+        selectElement2.addEventListener('change', (event) => {
+            actualizarMontos()
+        });
+        
+        const getStockSelected = () =>{
+            pSelected = document.getElementById('productoSelected').value.split('_');  
+            document.getElementById('stockSelected').innerHTML=pSelected[3];
+        }
+    </script>
+    <script>   
+        let indice = 0;
+        let totales = 0;
+        let subtotal = 0;
+        let descuento = 0;
+        let arrayIdProctuctos=[];
+
+        const agregarTabla = ()=>{
+            op = document.getElementById('productoSelected').value.split('_');
+            let cantidadSelected =  document.getElementById('cantidadSelected').value
+            if(cantidadSelected <=0 || document.getElementById('productoSelected').value <=0){
+                alert('Seleccione un producto y cantidad válida.');
+                return;
+            }
+
+            let igv = document.getElementById('id_tasaIgv').value;
+            if(igv=='' || igv==null){
+                alert('Asigna el valor IGV');
+                return;
+            }else{
+                if(compara(op[0],arrayIdProctuctos)){
+                    alert('Ya ha seleccionado ese producto');
+                }
+                else{
+                    arrayIdProctuctos[indice] = {id:op[0],estado:true};
+                    
+                    fila = '<tr id="filaP'+(indice)+'">'
+                    
+                    fila +=     '<td align="center"><a href="#" class="btn btn-danger btn-sm" onclick="quitarProducto('+indice+')"><i class="fas fa-trash-alt"></i></a></td>' 
+                    fila +=     '<td><input class="form-control" type="hidden" name="idProducto[]" value="'+op[0]+'">'+op[4]+'</td>'
+                    fila +=     '<td><input class="form-control" type="hidden" name="idDescripcion[]" value="'+op[1]+'">'+op[1]+'</td>'
+
+                    fila +=     '<td><input id="filaPrecioUnitario'+(indice)+'" class="form-control" type="hidden" name="idPrecioUnitario[]" value="'+op[2].replace(/,/g, '.')+'">'+op[2].replace(/,/g, '.')+'</td>'
+                    fila +=     '<td><input id="filaCantidad'+(indice)+'" min="1" class="form-control" style="width:70px;" type="number" step="1" name="idCantidad[]" value="'+parseInt(cantidadSelected)+'" onchange="actualizarMontos()"></td>'
+                    fila +=     '<td><input id="filaPrecio'+(indice)+'" class="form-control" type="number" readonly name="idPrecio[]" value=""  onchange="actualizarMontos()"></td>'    
+
+                    fila +=     '<td><input id="filaDescuentoUnitario'+(indice)+'" min="0" class="form-control" onchange="actualizarMontos()" type="number" step="0.1"  name="idDescuentoUnitario[]" value="0"></td>'
+                    
+                    fila +=     '<td><input class="form-control" readonly type="text" id="filaPrecioSinIGV'+(indice)+'" name="idPrecioSinIGV[]" value=""</td>'
+
+                    fila +=     '<td><input class="form-control" readonly type="text" id="filaPrecioProductoTotal'+(indice)+'" name="idPrecioProductoTotal[]" value=""</td>'
+                    fila +='</tr>';                    
+                    document.getElementById('tableProductos').innerHTML += fila;
+                    
+
+                    totales = 0;
+                    subtotal = 0;
+                    descuento = 0;
+                    for (let index = 0; index < arrayIdProctuctos.length; index++) {
+                        if(arrayIdProctuctos[index].estado==true){
+                            
+                            let precio_unitario = document.getElementById('filaPrecioUnitario'+index).value;
+                            let cantidad = document.getElementById('filaCantidad'+index).value;
+                            let precio = parseFloat(precio_unitario).toFixed(2)*parseFloat(cantidad).toFixed(2);
+                            document.getElementById('filaPrecio'+index).value = precio;
+                            
+                            let descuento_unitario = document.getElementById('filaDescuentoUnitario'+index).value;
+                            let precioSinIgv = parseFloat(precio).toFixed(2)-parseFloat(descuento_unitario).toFixed(2)
+                            document.getElementById('filaPrecioSinIGV'+index).value = precioSinIgv;
+                        
+                            let precio_total =parseFloat(precioSinIgv*1.0 + precioSinIgv*1.0*parseFloat(igv).toFixed(2)).toFixed(2); 
+                            document.getElementById('filaPrecioProductoTotal'+index).value = precio_total
+                            
+                            console.log(precio_total)
+                            subtotal = subtotal +precio;
+                            descuento = descuento + parseFloat(descuento_unitario).toFixed(2)*1.0;
+                            totales =  totales+ precio_total*1.0;
+                        }
+                         
+                    }
+                    let tasaCambio = document.getElementById('id_tasaCambio').value;
+                    if(parseInt(tasaCambio) <= 0)
+                        tasaCambio = 1
+                    document.getElementById('sub-total').innerHTML=parseFloat(subtotal).toFixed(2);
+                    document.getElementById('descuento').innerHTML=parseFloat(descuento).toFixed(2);
+                    document.getElementById('totales').innerHTML=parseFloat(totales/tasaCambio).toFixed(2);
+
+                    indice++;
+                    $('#exampleModal').modal('hide');
+                }
+            }
+           
+        }
+
+        const actualizarMontos =()=>{
+            let igv = document.getElementById('id_tasaIgv').value;
+            totales = 0;
+            subtotal = 0;
+            descuento = 0;
+            for (let index = 0; index < arrayIdProctuctos.length; index++) {
+                if(arrayIdProctuctos[index].estado==true){
+                    let precio_unitario = document.getElementById('filaPrecioUnitario'+index).value;
+                    let cantidad = document.getElementById('filaCantidad'+index).value;
+                    let precio = parseFloat(precio_unitario).toFixed(2)*parseFloat(cantidad).toFixed(2);
+                    document.getElementById('filaPrecio'+index).value = precio;
+                    
+                    let descuento_unitario = document.getElementById('filaDescuentoUnitario'+index).value;
+                    let precioSinIgv = parseFloat(precio).toFixed(2)-parseFloat(descuento_unitario).toFixed(2)
+                    document.getElementById('filaPrecioSinIGV'+index).value = precioSinIgv;
+                    
+                    let precio_total =parseFloat(precioSinIgv*1.0 + precioSinIgv*1.0*parseFloat(igv).toFixed(2)).toFixed(2); 
+                    document.getElementById('filaPrecioProductoTotal'+index).value = precio_total
+                    
+                    console.log(precio_total)
+                    subtotal = subtotal +precio;
+                    descuento = descuento + parseFloat(descuento_unitario).toFixed(2)*1.0;
+                    totales =  totales+ precio_total*1.0;
+                }
+                    
+            }
+            let tasaCambio = document.getElementById('id_tasaCambio').value;
+            if(parseInt(tasaCambio) <= 0)
+                tasaCambio = 1
+            document.getElementById('sub-total').innerHTML=parseFloat(subtotal).toFixed(2);
+            document.getElementById('descuento').innerHTML=parseFloat(descuento).toFixed(2);
+            document.getElementById('totales').innerHTML=parseFloat(totales/tasaCambio).toFixed(2);
+            document.getElementById('spanIGV').innerHTML=parseFloat(igv).toFixed(2);
+        }
+        const quitarProducto =(i)=>
+        {
+            document.getElementById('filaP'+i).remove();
+            arrayIdProctuctos[i].estado = false; 
+            let totales = 0;
+            let subtotal = 0;
+            let descuento = 0;
+            for (let index = 0; index < arrayIdProctuctos.length; index++) {
+                if(arrayIdProctuctos[index].estado==true){
+                        let precio_unitario = document.getElementById('filaPrecioUnitario'+index).value;
+                        let descuento_unitario = document.getElementById('filaDescuentoUnitario'+index).value;
+                        let cantidad = document.getElementById('filaCantidad'+index).value;
+                        let precio_total = document.getElementById('filaPrecioProductoTotal'+index).value; 
+                        
+                        subtotal = subtotal + parseFloat(precio_unitario).toFixed(2)*parseFloat(cantidad);
+                        descuento = descuento + parseFloat(descuento_unitario).toFixed(2)*1.0;
+                        totales =  totales+ parseFloat(precio_total).toFixed(2)*1.0;
+                }
+            }
+            console.log(totales);
+            document.getElementById('sub-total').innerHTML=parseFloat(subtotal).toFixed(2);
+            document.getElementById('descuento').innerHTML=parseFloat(descuento).toFixed(2);
+            document.getElementById('totales').innerHTML=parseFloat(totales).toFixed(2);
+        }
+        const compara =(producto,vector)=>{
+            for(let i=0; i<vector.length; i++){
+                if(producto==vector[i]){
+                    return true;
+                }
+            }
+		return false;
+	}
+    </script>
+{% endblock%} 

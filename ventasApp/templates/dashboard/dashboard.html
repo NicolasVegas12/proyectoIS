@@ -1,0 +1,223 @@
+{% extends "plantilla.html" %}
+{% block title %} Boutique | Categoria {% endblock title %}
+{% block css %} 
+<style>
+    .contador{
+        height:95px;
+        width: 370px;
+        transform: rotate(180deg);
+        position: relative;
+        overflow: hidden;
+    }
+    .numero{
+        height: 110%;
+        width: 100%;
+        text-align: center;
+        font-size: 5em;
+        font-weight: bold;
+        font-family:  sans-serif;
+        color: #555;
+        position: absolute;
+        transform: rotate(-180deg);
+        mix-blend-mode: screen;
+        background-color: #fff;
+        display: flex;
+        bottom: 0px;
+        right: 10px;
+        justify-content: center;
+        align-items: center;
+    }
+    .color_fondo-blue{
+        transition: .2s;
+        transform-origin: bottom;
+        position: absolute;
+        display: block;
+        height: 95%;
+        width: 95%;
+        background-color: rgb(2, 5, 190);
+    }
+    .color_fondo-red{
+        transition: .2s;
+        transform-origin: bottom;
+        position: absolute;
+        display: block;
+        height: 95%;
+        width: 95%;
+        background-color: rgb(190, 2, 2);
+    }
+</style>
+{% endblock %}
+ 
+{% block content %}
+
+<div class="p-3">
+    <div class="row">
+        <div class="col-12">
+            <div class="row">
+                <div class="col-12 col-lg-6 pb-2">
+                    <div class="d-flex p-2 pl-5 align-items-center" style="background-color: #fff;border-radius: 1rem;padding-left: 2rem!important;">
+                        <h4 style="font-weight: bold;">CANTIDAD DE VENTAS EN EL MES</h4>
+                        <div class="d-block contador">
+                            <div class="color_fondo-blue" id="fondo_color_ventas"></div>
+                            <div class="numero" id="cantidad_ventas"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-lg-6 pb-2">
+                    <div class="d-flex p-2 pl-5 align-items-center" style="background-color: #fff;border-radius: 1rem;padding-left: 2rem!important;">
+                        <h4 style="font-weight: bold;">CANTIDAD DE COMPRAS EN EL MES</h4>
+                        <div class="d-block contador">
+                            <div class="color_fondo-red" id="fondo_color_compras"></div>
+                            <div class="numero" id="cantidad_compras"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12">
+            <div class="row">
+                <div class="col-12 pb-2">
+                    <div class="d-flex py-3 px-5 align-items-center justify-content-center" style="background-color: #fff;border-radius: 1rem;">
+                        <h4 style="font-weight: bold;">REPORTES</h4>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-12 col-lg-6 pb-2">
+                    <div class="p-4 text-center" style="background-color: #fff;border-radius: 1rem;">
+                        <h6 style="font-weight: bold;">VENTAS POR TABAJADOR</h6>
+                        <canvas id="myChartLine"></canvas>
+                    </div>
+                </div>                
+                <div class="col-12 col-lg-6 pb-2">
+                    <div class="p-4 text-center" style="background-color: #fff;border-radius: 1rem;">
+                        <h6 style="font-weight: bold;">PRODUCTOS MÁS VENDIDOS</h6>
+                        <canvas id="myChartDona"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+</div>
+
+{% endblock %} 
+
+{% block js %}
+    <script>
+        let endpointVentas = '/api/get_countVentas/'
+        $.ajax({
+            method:"GET",
+            url: endpointVentas,
+            success: function(response){
+                console.log(response)
+
+                const fondo_color_ventas=document.getElementById('fondo_color_ventas')
+                const cantidad_ventas=document.getElementById('cantidad_ventas')
+                
+                let countVentas=-1
+                let tiempoVentas=setInterval(() => {
+                    countVentas+=1
+                    fondo_color_ventas.style.height=`${countVentas}%`
+                    cantidad_ventas.textContent=countVentas
+                    if(countVentas===response.cantidad){
+                        clearInterval(tiempoVentas)
+                    }
+                }, 100);
+            },
+            error: function(error_data){
+                console.log("error")
+                console.log(error_data)
+            }
+        })
+        
+    </script>
+    <script>
+
+        let endpointCompras = '/api/get_countCompras/'
+        $.ajax({
+            method:"GET",
+            url: endpointCompras,
+            success: function(response){ 
+                console.log(response)               
+                const fondo_color_compras=document.getElementById('fondo_color_compras')
+                const cantidad_compras=document.getElementById('cantidad_compras')
+                
+                let countCompras=-1
+                let tiempoCompras=setInterval(() => {
+                    countCompras+=1
+                    fondo_color_compras.style.height=`${countCompras}%`
+                    cantidad_compras.textContent=countCompras
+                    if(countCompras===response.cantidad){
+                        clearInterval(tiempoCompras)
+                    }
+                }, 100);
+            },
+            error: function(error_data){
+                console.log("error")
+                console.log(error_data)
+            }
+        })
+        
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js" integrity="sha512-ElRFoEQdI5Ht6kZvyzXhYG9NqjtkmlkfYk0wr6wHxU9JEHakS7UJZNeml5ALk+8IKlU6jDgMabC3vkumRokgJA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script>
+        let endpointLine = '/api/get_dataLine/'
+        $.ajax({
+            method:"GET",
+            url: endpointLine,
+            success: function(response){
+                console.log(response)
+
+                const config = {
+                type: 'line',
+                data: response,
+                options: {}
+                };
+                const myChart = new Chart(
+                document.getElementById('myChartLine'),
+                config
+                );
+            },
+            error: function(error_data){
+                console.log("error")
+                console.log(error_data)
+            }
+        })
+        
+      </script>
+    <script>
+        let endpointDona = '/api/get_dataDona/'
+        $.ajax({
+            method:"GET",
+            url: endpointDona,
+            success: function(response){
+                console.log(response)
+                const config = {
+                    type: 'doughnut',
+                    data: response,
+                    options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                        position: 'top',
+                        }
+                    }
+                    },
+                };
+                const myChart = new Chart(
+                document.getElementById('myChartDona'),
+                config
+                );
+            },
+            error: function(error_data){
+                console.log("error")
+                console.log(error_data)
+            }
+        })
+        
+    </script>
+
+{% endblock%} 
+
+

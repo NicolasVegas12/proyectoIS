@@ -1,0 +1,218 @@
+{% extends "plantilla.html" %}
+{% block title %} Boutique | Nota de Almacén {% endblock title %}
+
+{% block content %}
+{% load crispy_forms_tags %}
+<div class="p-3">
+    <div class="card card-info mx-4 my-4">
+        <div class="card-header">
+            <h1 class="card-title">AGREGAR NOTA DE ALMACÉN</h1>
+        </div>
+        <div class="card-body">
+            <form method="post">
+            {% csrf_token %}
+            <div class="row">                
+                <div class="col-12 col-lg-3">
+                    {{ form.codigo|as_crispy_field }}
+                </div>
+                <div class="col-12 col-lg-3">
+                    
+                </div>
+                <div class="col-12 col-lg-3">
+                    {{ form.fechaEmision|as_crispy_field }}
+                </div>
+                <div class="col-12 col-lg-3">
+                    {{ form.fechaEntrega |as_crispy_field }}
+                </div>
+
+                <div class="col-12 col-lg-3">
+                    {{ form.pedidoVenta|as_crispy_field }}
+                </div>
+                <div class="col-12 col-lg-3">
+                    {{ form.ordenCompra |as_crispy_field }}
+                </div>
+
+                
+                <div class="col-12 col-lg-3">
+                    {{ form.trabajador|as_crispy_field }}
+                </div>
+                <div class="col-12 col-lg-3">
+                    {{ form.tipoOperacion|as_crispy_field }}
+                </div>                   
+                <div class="col-12 col-lg-3">
+                    {{ form.serie|as_crispy_field }}
+                </div> 
+                <div class="col-12 col-lg-3">
+                    {{ form.numero|as_crispy_field }}
+                </div>                  
+                <div class="col-12 col-lg-3">
+                    {{ form.estado|as_crispy_field }}
+                </div>  
+
+            </div>
+            <hr class="my-2" style="background-color: #c4c4c4;">
+            <div class="row py-2">
+                <div class="col-12 text-center">
+                    <h5>Detalle de Despacho</h5>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-12">
+                    <table class="table">
+                        <thead>
+                          <tr>
+                            <th scope="col">Código</th>
+                            <th scope="col">Producto</th>
+                            <th scope="col">Precio Unitario</th>                            
+                            <th scope="col">Cantidad</th>
+                            <th scope="col">Precio</th>
+                            <th scope="col">Stock</th>
+                          </tr>
+                        </thead>
+                        <tbody id="tableProductos">
+                        </tbody>
+                      </table>
+                </div>
+            </div>
+            <div class="d-flex justify-content-end">
+                <a href="{% url 'listarnotaAlmacen' %}" class="btn btn-secondary">Cancelar</a> &nbsp;
+                <button type="submit" class="btn btn-primary">Guardar</button>
+            </div>
+            </form>
+        </div>
+    </div>
+</div>
+</div>
+{% endblock%} 
+
+{% block js %}
+    <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    {% if messages %}
+        {% for m in messages %}
+            <script>
+                Swal.fire({
+                "title": "Warning",
+                "text":"{{m}}",
+                "icon":"info"
+                })
+            </script>
+        {% endfor %}
+    {% endif %}
+    <script>
+        const selectElement3 = document.getElementById('id_pedidoVenta');
+        selectElement3.addEventListener('change', (event) => {
+            onChangeDetalleVenta(event.target.value)
+        });
+        
+    </script>
+    <script>
+        const selectElement4 = document.getElementById('id_ordenCompra');
+        selectElement4.addEventListener('change', (event) => {
+            onChangeOrdenCompra(event.target.value)
+        });
+        
+    </script>
+    <script>  
+        const onChangeDetalleVenta  = (id)=>{
+            
+            document.getElementById('tableProductos').innerHTML = '';
+            document.getElementById('id_tipoOperacion').value = "SALIDA";
+            let endpointCompras = '/api/get_detallePedidoVenta/'+id+'/'
+            $.ajax({
+                method:"GET",
+                url: endpointCompras,
+                success: function(response){
+                    let data = response; 
+                    document.getElementById('id_serie').value = data.serie;
+                    document.getElementById('id_numero').value = data.numero;
+                    let indice = 0;
+                    let arrayIdProctuctos=[];
+                    console.log(response);
+                    for (let index = 0; index < data.detalle.length; index++) {
+                        const element = data.detalle[index];
+                        arrayIdProctuctos[indice] = data.detalle[index].producto_id;
+                    
+                        fila = '<tr id="filaP'+(indice)+'">'
+                        
+                        fila +=     '<td><input class="form-control" type="hidden" name="idProducto[]" value="'+data.detalle[index].producto_id +'">'+data.detalle[index].codigo+'</td>'
+                        
+                        fila +=     '<td><input class="form-control" id="filaDetalleP'+(indice)+'" type="hidden" name="idDetalle[]" value="'+data.detalle[index].detalle_id+'">'+data.detalle[index].descripcion+'</td>'
+
+                        fila +=     '<td><input id="filaPrecioUnitario'+(indice)+'" class="form-control" type="hidden" name="idPrecioUnitario[]" value="'+data.detalle[index].precioUnitario+'">'+data.detalle[index].precioUnitario+'</td>'
+                        fila +=     '<td><input id="filaCantidad'+(indice)+'" readonly min="1" class="form-control" style="width:70px;" type="number" step="1" name="idCantidad[]" value="'+data.detalle[index].cantidad+'" readonly"></td>'
+                        fila +=     '<td><input id="filaPrecio'+(indice)+'" class="form-control" type="number" readonly name="idPrecio[]" value=""  readonly></td>'    
+
+                        fila +=     '<td><input id="filaDescuentoUnitario'+(indice)+'" min="0" class="form-control" readonly type="number"  name="idDescuentoUnitario[]" value="'+data.detalle[index].stock+'"></td>'
+                        ;                    
+                        document.getElementById('tableProductos').innerHTML += fila;
+                        for (let index = 0; index < arrayIdProctuctos.length; index++) {
+                            let precio_unitario = document.getElementById('filaPrecioUnitario'+index).value;
+                            let cantidad = document.getElementById('filaCantidad'+index).value;
+                            let precio = parseFloat(precio_unitario).toFixed(2)*parseFloat(cantidad).toFixed(2);
+                            document.getElementById('filaPrecio'+index).value = precio;
+                            
+                        }
+                        indice++;
+                    }           
+                },
+                error: function(error_data){
+                    console.log("error")
+                    console.log(error_data)
+                }
+            })
+        }    
+        
+    </script>
+
+    <script>  
+        const onChangeOrdenCompra  = (id)=>{
+            
+            document.getElementById('tableProductos').innerHTML = '';
+            document.getElementById('id_tipoOperacion').value = "ENTRADA";
+            let endpointCompras = '/api/get_detalleOrdenCompra/'+id+'/'
+            $.ajax({
+                method:"GET",
+                url: endpointCompras,
+                success: function(response){
+                    let data = response; 
+                    document.getElementById('id_serie').value = data.serie;
+                    document.getElementById('id_numero').value = data.numero;
+                    let indice = 0;
+                    let arrayIdProctuctos=[];
+                    console.log(response);
+                    for (let index = 0; index < data.detalle.length; index++) {
+                        const element = data.detalle[index];
+                        arrayIdProctuctos[indice] = data.detalle[index].producto_id;
+                    
+                        fila = '<tr id="filaP'+(indice)+'">'
+                        
+                        fila +=     '<td><input class="form-control" type="hidden" name="idProducto[]" value="'+data.detalle[index].producto_id+'">'+data.detalle[index].codigo+'</td>'
+                        
+                        fila +=     '<td><input class="form-control" id="filaDetalleP'+(indice)+'" type="hidden" name="idDetalle[]" value="'+data.detalle[index].detalle_id+'">'+data.detalle[index].descripcion+'</td>'
+
+                        fila +=     '<td><input id="filaPrecioUnitario'+(indice)+'" class="form-control" type="hidden" name="idPrecioUnitario[]" value="'+data.detalle[index].precioUnitario+'">'+data.detalle[index].precioUnitario+'</td>'
+                        fila +=     '<td><input id="filaCantidad'+(indice)+'" readonly min="1" class="form-control" style="width:70px;" type="number" step="1" name="idCantidad[]" value="'+data.detalle[index].cantidad+'" readonly"></td>'
+                        fila +=     '<td><input id="filaPrecio'+(indice)+'" class="form-control" type="number" readonly name="idPrecio[]" value=""  readonly></td>'    
+
+                        fila +=     '<td><input id="filaDescuentoUnitario'+(indice)+'" min="0" class="form-control" readonly type="number"  name="idDescuentoUnitario[]" value="'+data.detalle[index].stock+'"></td>'
+                        ;                    
+                        document.getElementById('tableProductos').innerHTML += fila;
+                        for (let index = 0; index < arrayIdProctuctos.length; index++) {
+                            let precio_unitario = document.getElementById('filaPrecioUnitario'+index).value;
+                            let cantidad = document.getElementById('filaCantidad'+index).value;
+                            let precio = parseFloat(precio_unitario).toFixed(2)*parseFloat(cantidad).toFixed(2);
+                            document.getElementById('filaPrecio'+index).value = precio;
+                            
+                        }
+                        indice++;
+                    }           
+                },
+                error: function(error_data){
+                    console.log("error")
+                    console.log(error_data)
+                }
+            })
+        }    
+        
+    </script>
+{% endblock%} 

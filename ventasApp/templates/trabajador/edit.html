@@ -1,0 +1,49 @@
+{% extends "plantilla.html" %}
+{% block title %} Boutique | Trabajador {% endblock title %}
+
+{% block content %}
+{% load crispy_forms_tags %}
+<div class="p-3">
+    <div class="card card-info mx-4 my-4">
+        <div class="card-header">
+            <h1 class="card-title">EDITAR TRABAJADOR</h1>
+        </div>
+        <div class="card-body">
+            <form action="" method="post">
+                {% csrf_token %}
+                <div class="row">                
+                    <div class="col-12 col-lg-6">
+                        {{ form.nombres|as_crispy_field }}
+                    </div>
+                    <div class="col-12 col-lg-6">
+                        {{ form.apellidos|as_crispy_field }}
+                    </div>
+                    <div class="col-12 col-lg-4">
+                        {{ form.user|as_crispy_field }}
+                    </div>
+                    <div class="col-12 col-lg-8">
+                        {{ form.direccion|as_crispy_field }}
+                    </div>
+                    <div class="col-12 col-lg-6">
+                        {{ form.email|as_crispy_field }}
+                    </div>
+                    <div class="col-12 col-lg-3">
+                        {{ form.telefono|as_crispy_field }}
+                    </div>
+                    <div class="col-12 col-lg-3">
+                        {{ form.sexo|as_crispy_field }}
+                    </div>
+                    <div class="col-12 col-lg-12">
+                        {{ form.activo|as_crispy_field }}
+                    </div>
+                </div>
+                <div class="d-flex justify-content-end">
+                    <a href="{% url 'listartrabajador' %}" class="btn btn-secondary">Cancelar</a>
+                    &nbsp;
+                    <button type="submit" class="btn btn-primary">Actualizar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock%}

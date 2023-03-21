@@ -1,0 +1,277 @@
+{% extends "plantilla.html" %}
+{% block title %} Boutique | Nota de Almacén {% endblock title %}
+
+{% block content %}
+{% load crispy_forms_tags %}
+<div class="py-3">
+    <div class="card card-info mx-4 my-4">
+        <div class="card-header">
+            <h1 class="card-title">EDITAR NOTA DE ALMACÉN</h1>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                <div class="row">                
+                    <div class="col-12 col-lg-6">
+                        {{ form.codigo|as_crispy_field }}
+                    </div>
+                    <div class="col-12 col-lg-3">
+                        {{ form.fechaEmision|as_crispy_field }}
+                    </div>
+                    <div class="col-12 col-lg-3">
+                        {{ form.fechaEntrega |as_crispy_field }}
+                    </div>
+                    <div class="col-12 col-lg-3">
+                        {{ form.pedidoVenta|as_crispy_field }}
+                    </div>
+                    <div class="col-12 col-lg-3">
+                        {{ form.ordenCompra |as_crispy_field }}
+                    </div>
+                    <div class="col-12 col-lg-3">
+                        {{ form.trabajador|as_crispy_field }}
+                    </div>
+                    <div class="col-12 col-lg-3">
+                        {{ form.tipoOperacion|as_crispy_field }}
+                    </div>  
+                    <div class="col-12 col-lg-4">
+                        {{ form.serie|as_crispy_field }}
+                    </div> 
+                    <div class="col-12 col-lg-4">
+                        {{ form.numero|as_crispy_field }}
+                    </div>                  
+                    <div class="col-12 col-lg-4">
+                        {{ form.estado|as_crispy_field }}
+                    </div>
+                </div>
+                <hr class="my-2" style="background-color: #c4c4c4;">
+                <div class="row py-2">
+                    <div class="col-12 text-center">
+                        <h5>Detalle de Orden de Compra</h5>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12 pb-3">
+                        <div class="d-flex justify-content-end">
+                            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">Agregar Producto</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12">
+                        <table class="table">
+                            <thead>
+                              <tr>
+                                <th scope="col">Código</th>
+                                <th scope="col">Producto</th>    
+                                <th scope="col">Precio Unitario</th>                       
+                                <th scope="col">Cantidad</th>
+                                <th scope="col">Precio</th> 
+                                <th scope="col">Stock</th>
+                              </tr>
+                            </thead>
+                            <tbody id="tableProductos">  
+                            </tbody>
+                          </table>
+                    </div>
+                </div>
+                
+                <div id="eliminado">
+                </div>
+                <div class="d-flex justify-content-end pt-3">
+                    <a href="{% url 'listarnotaAlmacen' %}" class="btn btn-secondary">Cancelar</a> &nbsp;
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+
+
+<!-- Modal -->
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Lista Productos</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <label for="productoSelected">Producto</label>
+            <select id="productoSelected" name="productoSelected" class="form-select" aria-label="Default select example" onchange="getStockSelected()">
+                <option value="-1" selected disabled>Selecciona un Producto</option>
+                {% if list_product %}
+                    {% for itemproducto in list_product %}
+                        <option value="{{itemproducto.idProducto}}_{{itemproducto.descripcion}}_{{itemproducto.precioUnitario}}_{{itemproducto.stock}}_{{itemproducto.codigo}}">{{itemproducto.descripcion}}</option>
+                    {% endfor %}
+                {% else %}
+                {% endif %}
+            </select>
+            <div class="py-3 text-center">
+                <h6>STOCK Disponible: - <span id="stockSelected"></span>-</h6>
+            </div>
+            <div>
+                <label for="cantidadSelected">Cantidad</label>
+                <input id="cantidadSelected" name="cantidadSelected" type="number" class="form-control" value="1" min="1" step="1" max="100">
+            </div>
+            
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+          <button type="button" class="btn btn-primary" onclick="agregarTabla()">Guardar</button>
+        </div>
+      </div>
+    </div>
+</div>
+
+{% endblock%}
+
+
+{% block js %}   
+    <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    {% if messages %}
+        {% for m in messages %}
+            <script>
+                Swal.fire({
+                "title": "Warning",
+                "text":"{{m}}",
+                "icon":"info"
+                })
+            </script>
+        {% endfor %}
+    {% endif %}
+    <script>
+
+        const getStockSelected = () =>{
+            pSelected = document.getElementById('productoSelected').value.split('_');  
+            document.getElementById('stockSelected').innerHTML=pSelected[3];
+        }
+        
+        const selectElement2 = document.getElementById('filaCantidad0');
+        selectElement2.addEventListener('change', (event) => {
+            actualizarMontos()
+        });
+    </script>
+    <script>
+        
+            
+    </script>
+    <script>   
+        let indice = 0;
+
+        let arrayIdProctuctos=[];
+        let arrayDetalleEliminado=[];
+
+        const actualizarMontos =()=>{
+            for (let index = 0; index < arrayIdProctuctos.length; index++) {
+                let precio_unitario = document.getElementById('filaPrecioUnitario'+index).value;
+                let cantidad = document.getElementById('filaCantidad'+index).value;
+                let precio = parseFloat(precio_unitario).toFixed(2)*parseFloat(cantidad).toFixed(2);
+                document.getElementById('filaPrecio'+index).value = precio;       
+            }
+        }
+
+        const agregarTabla = ()=>{
+            op = document.getElementById('productoSelected').value.split('_');
+            let cantidadSelected =  document.getElementById('cantidadSelected').value
+            if(cantidadSelected <=0 || document.getElementById('productoSelected').value <=0){
+                alert('Seleccione un producto y cantidad válida.');
+                return;
+            }
+
+            let igv = document.getElementById('id_tasaIgv').value;
+            if(igv=='' || igv==null){
+                alert('Asigna el valor IGV');
+                return;
+            }else{
+                if(compara(op[0],arrayIdProctuctos)){
+                    alert('Ya ha seleccionado ese producto');
+                }
+                else{
+                    arrayIdProctuctos[indice] = op[0];
+                    
+                    fila = '<tr id="filaP'+(indice)+'">'
+                    fila +=     '<td><input class="form-control" type="hidden" name="idProducto[]" value="'+op[0]+'">'+op[4]+'</td>'
+                    fila +=     '<td><input class="form-control" id="filaDetalleP'+(indice)+'" type="hidden" name="idDetalle[]" value="0">'+op[1]+'</td>'
+                    fila +=     '<td><input id="filaPrecioUnitario'+(indice)+'" class="form-control" type="hidden" name="idPrecioUnitario[]" value="'+data.detalle[index].precioUnitario+'">'+data.detalle[index].precioUnitario+'</td>'
+                    fila +=     '<td><input id="filaCantidad'+(indice)+'" min="1" class="form-control" style="width:70px;" type="number" step="1" name="idCantidad[]" value="'+parseInt(cantidadSelected)+'" onchange="actualizarMontos()"></td>'
+                    fila +=     '<td><input id="filaPrecio'+(indice)+'" class="form-control" type="number" readonly name="idPrecio[]" value=""  readonly></td>'    
+                    fila +=     '<td><input id="filaDescuentoUnitario'+(indice)+'" min="0" class="form-control" style="width:80px;" readonly type="number"  name="idDescuentoUnitario[]" value="'+data.detalle[index].stock+'"></td>'
+                    fila +='</tr>';                    
+                    document.getElementById('tableProductos').innerHTML += fila;
+                    
+
+                    for (let index = 0; index < arrayIdProctuctos.length; index++) {
+                        let precio_unitario = document.getElementById('filaPrecioUnitario'+index).value;
+                        let cantidad = document.getElementById('filaCantidad'+index).value;
+                        let precio = parseFloat(precio_unitario).toFixed(2)*parseFloat(cantidad).toFixed(2);
+                        document.getElementById('filaPrecio'+index).value = precio;
+                        
+                    }
+                    indice++;
+                    $('#exampleModal').modal('hide');
+                }
+            }
+           
+        }
+        
+        const compara =(producto,vector)=>{
+            for(let i=0; i<vector.length; i++){
+                if(producto==vector[i]){
+                    return true;
+                }
+            }
+		return false;
+        }
+    </script>
+    <script>        
+        
+        let pedidoVenta = document.getElementById('id_pedidoVenta').value;
+        if(pedidoVenta!="")
+            endpointCompras = '/api/get_detallePedidoVenta/{{id}}/'
+        else
+            endpointCompras = '/api/get_detalleOrdenCompra/{{id}}/'
+
+        $.ajax({
+            method:"GET",
+            url: endpointCompras,
+            success: function(response){
+                let data = response; 
+                console.log(response);
+
+                for (let index = 0; index < data.detalle.length; index++) {
+                    const element = data.detalle[index];
+                    arrayIdProctuctos[indice] = data.detalle[index].producto_id;
+                
+                    fila = '<tr id="filaP'+(indice)+'">'
+                    
+                    fila +=     '<td><input class="form-control" type="hidden" name="idProducto[]" value="'+data.detalle[index].producto_id+'">'+data.detalle[index].codigo+'</td>'
+                    
+                    fila +=     '<td><input class="form-control" id="filaDetalleP'+(indice)+'" type="hidden" name="idDetalle[]" value="'+data.detalle[index].detalle_id+'">'+data.detalle[index].descripcion+'</td>'
+                    fila +=     '<td><input id="filaPrecioUnitario'+(indice)+'" class="form-control" type="hidden" name="idPrecioUnitario[]" value="'+data.detalle[index].precioUnitario+'">'+data.detalle[index].precioUnitario+'</td>'   
+
+                    fila +=     '<td><input id="filaCantidad'+(indice)+'" min="1" class="form-control" style="width:70px;" type="number" step="1" name="idCantidad[]" value="'+data.detalle[index].cantidad+'" onchange="actualizarMontos()"></td>'
+                    fila +=     '<td><input id="filaPrecio'+(indice)+'" class="form-control" type="number" readonly name="idPrecio[]" value="" readonly></td>' 
+                    fila +=     '<td><input id="filaDescuentoUnitario'+(indice)+'" min="0" class="form-control" style="width:80px;" readonly type="number"  name="idDescuentoUnitario[]" value="'+data.detalle[index].stock+'"></td>'
+                    
+                    fila +='</tr>';                    
+                    document.getElementById('tableProductos').innerHTML += fila;
+                    
+                    for (let index = 0; index < arrayIdProctuctos.length; index++) {
+                        let precio_unitario = document.getElementById('filaPrecioUnitario'+index).value;
+                        let cantidad = document.getElementById('filaCantidad'+index).value;
+                        let precio = parseFloat(precio_unitario).toFixed(2)*parseFloat(cantidad).toFixed(2);
+                        document.getElementById('filaPrecio'+index).value = precio;
+                    }
+                    indice++;
+                }           
+            },
+            error: function(error_data){
+                console.log("error")
+                console.log(error_data)
+            }
+        })
+    </script>
+
+{% endblock%} 

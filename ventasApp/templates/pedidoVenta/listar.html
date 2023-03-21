@@ -1,0 +1,223 @@
+{% extends "plantilla.html" %}
+{% block title %} Boutique | Pedido de Venta {% endblock title %}
+
+{% block content %}
+    <div class="py-3">
+        <div class="card mt-3">
+        <div class="card-header d-flex justify-content-between p-3">
+            <div>
+                <h1 class="card-title align-items-center">LISTADO DE PEDIDOS DE VENTA</h1>
+            </div>
+            {% if perms.ventasApp.add_pedidoventa %} 
+            <div class="ml-auto">
+                <a href="{% url 'agregarpedidoVenta' %}" class='btn btn-sm btn-primary'>
+                    <i class='fas fa-plus'></i> NUEVO
+                </a>
+            </div>
+            {% endif %}
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-12 col-md-4">
+                    <form action="" method="GET">
+                        <div class="input-group">
+                            <input type="text" name="buscar" id="buscar" class="form-control" autofocus placeholder="Buscar codigo" value=""><span class="input-group-btn">
+                            <button class="btn btn-primary"><i class="fa fa-search"></i></button></span>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <br>
+
+            <table class="table" style="width:100%">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Id</th>
+                        <th>Código</th>
+                        <th>Documento</th>
+                        <th>Fecha Emisión</th>
+                        <th>Fecha Entrega</th>
+                        <th>Moneda</th>
+                        <th>Subtotal</th>
+                        <th>Descuento</th>
+                        <th>Total</th>                        
+                        <th>ESTADO</th>
+                        <th><center>Opciones</center></th>
+                    </tr>
+                </thead>
+                {% if page_obj %}
+                {% for itempedidoventa in page_obj %}
+                <tr>
+                    <td>{{ itempedidoventa.idPedidoVenta}}</td>
+                    <td>{{ itempedidoventa.codigo }}</td>
+                    <td>{{ itempedidoventa.tipoDocumento }}</td>
+                    <td>{{ itempedidoventa.fechaEmision|date:"d/m/Y" }}</td>
+                    <td>{{ itempedidoventa.fechaEntrega|date:"d/m/Y" }}</td>
+                    <td>{{ itempedidoventa.tipoMoneda }}</td>
+                    <td>{{ itempedidoventa.subtotal }}</td>
+                    <td>{{ itempedidoventa.descuento }}</td>
+                    <td>{{ itempedidoventa.total }}</td>
+                    {% if perms.ventasApp.change_pedidoventa and perms.ventasApp.delete_pedidoventa %}
+                    <td>{% if itempedidoventa.estado == 1 %}
+                        Abierto
+                        {% endif %}
+                        {% if itempedidoventa.estado == 2 %}
+                        Cerrado
+                        {% endif %}
+                        {% if itempedidoventa.estado == 4 %}
+                        Anulado
+                        {% endif %}
+                    </td>
+                    <td style="text-align: center;">
+                        {% if itempedidoventa.estado == 1 %}                        
+                        <a title="Cargar Documento" href="{% url 'pdfpedidoVenta' itempedidoventa.idPedidoVenta %}" target="_blank" class="btn btn-danger btn-sm"><i class="far fa-file-pdf"></i></a>                        
+                        <a title="Editar" href="{% url 'editarpedidoVenta' itempedidoventa.idPedidoVenta %}" class="btn btn-success btn-sm"><i class="fa fa-edit"></i></a>                        
+                        <a title="Eliminar" href="#" onclick="eliminarpedidoVenta('{{itempedidoventa.idPedidoVenta}}','{{itempedidoventa.codigo}}')" class="btn btn-danger btn-sm"><i class="fa fa-trash"></i></a>
+                        {% endif %}
+                        {% if itempedidoventa.estado == 2 %}
+                        <a title="Cargar Documento" href="{% url 'pdfpedidoVenta' itempedidoventa.idPedidoVenta %}" target="_blank" class="btn btn-danger btn-sm"><i class="far fa-file-pdf"></i></a>                        
+                        <a title="Editar" href="{% url 'editarpedidoVenta' itempedidoventa.idPedidoVenta %}" class="btn btn-success btn-sm"><i class="fa fa-edit"></i></a> 
+                        {% endif %}
+                        {% if itempedidoventa.estado == 4 %}
+                        <a title="Editar" href="{% url 'editarpedidoVenta' itempedidoventa.idPedidoVenta %}" class="btn btn-success btn-sm"><i class="fa fa-edit"></i></a>  
+                        {% endif %}
+                    </td>
+                    {% endif %}
+                </tr>
+                {% endfor %}
+                {% else %}
+                <tr style="text-align: center;">
+                    <td colspan="12">
+                        <p>No hay Registros</p>
+                    </td>
+                </tr>
+                {% endif %}
+            </table>
+            {% comment %} <nav aria-label="pagination-django">
+                <ul class="pagination">
+                  <li class="page-item"><a class="page-link" href="#">Previous</a></li>
+                  <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                  <li class="page-item"><a class="page-link" href="#">2</a></li>
+                  <li class="page-item"><a class="page-link" href="#">3</a></li>
+                  <li class="page-item"><a class="page-link" href="#">Next</a></li>
+                </ul>
+            </nav> {% endcomment %}
+
+            <div class="d-flex justify-content-end pt-2">
+                <nav aria-label="pagination-django">
+                    <ul class="pagination">
+                        {% if page_obj.has_previous %}                    
+                            <li class="page-item"><a class="page-link" href="?page=1">First</a></li>
+                            <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}"><<</a></li>                        
+                            
+                        {% endif %}
+                        
+                        <li class="page-item"><a class="page-link">Página {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</a></li>
+
+                        {% if page_obj.has_next %}
+                        
+                            <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">>></a></li>
+                            
+                            <li class="page-item"><a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last</a></li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+{% endblock content %}
+
+{% block js %}
+    <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    {% if messages %}
+    {% for m in messages %}
+        <script>
+            Swal.fire({
+            "title": "Éxito",
+            "text":"{{m}}",
+            "icon":"success"
+            })
+            console.log("{{m}}")
+        </script>
+    {% endfor %}
+    {% endif %}
+    <script>
+        function eliminarpedidoVenta(id,codigo){
+            Swal.fire({ "title":"¿Realmente desea eliminar Registro?",
+            "text":"ID:"+ id + " - Código :" + codigo,
+            "icon":"question",
+            "showCancelButton":true,
+            "cancelButtonText":"No",
+            "confirmButtonText":"Si",
+            "reverseButton":true,
+            "confirmButtonColor":"#dc3545"
+            }).then(function(result){ if(result.isConfirmed){
+                window.location.replace(window.location.origin+"/pedidoVenta/delete/"+id+"/") }
+        });
+        }
+</script>
+{% endblock js %} 
+
+{% block css %}
+    <style>
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 60px;
+      height: 34px;
+    }
+    
+    .switch input { 
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      -webkit-transition: .4s;
+      transition: .4s;
+    }
+    
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 26px;
+      width: 26px;
+      left: 4px;
+      bottom: 4px;
+      background-color: white;
+      -webkit-transition: .4s;
+      transition: .4s;
+    }
+    
+    input:checked + .slider {
+      background-color: #2196F3;
+    }
+    
+    input:focus + .slider {
+      box-shadow: 0 0 1px #2196F3;
+    }
+    
+    input:checked + .slider:before {
+      -webkit-transform: translateX(26px);
+      -ms-transform: translateX(26px);
+      transform: translateX(26px);
+    }
+    
+    /* Rounded sliders */
+    .slider.round {
+      border-radius: 34px;
+    }
+    
+    .slider.round:before {
+      border-radius: 50%;
+    }
+    </style>
+{% endblock css %}

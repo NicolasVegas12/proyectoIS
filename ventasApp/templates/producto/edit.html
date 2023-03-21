@@ -1,0 +1,171 @@
+{% extends "plantilla.html" %}
+{% block title %} Boutique | Producto {% endblock title %}
+{% load static %}
+{% block css %} 
+    <link rel="stylesheet" href="{% static '/adminlte/personalize/css/style.css' %}">
+{% endblock %}
+
+{% block content %}
+{% load crispy_forms_tags %}
+<div class="p-3">
+    <div class="card card-info mx-4 my-4">
+        <div class="card-header">
+            <h1 class="card-title">EDITAR PRODUCTO</h1>
+        </div>
+        <div class="card-body">
+            <form action="" method="post">
+                {% csrf_token %}
+                <div class="row">
+                    <div class="col-12 col-lg-6">
+                        <div class="row">                
+                            <div class="col-12 col-lg-5">
+                                {{ form.codigo|as_crispy_field }}
+                            </div>
+                            <div class="col-12 col-lg-7">
+                                
+                            </div>
+                            <div class="col-12">
+                                {{ form.categoria|as_crispy_field }}
+                            </div>
+                            <div class="col-12">
+                                {{ form.nombre|as_crispy_field }}
+                            </div>
+                            <div class="col-12">
+                                {{ form.descripcion|as_crispy_field }}
+                            </div>
+                            <div class="col-12">
+                                {{ form.marca|as_crispy_field }}
+                            </div>
+                            <div class="col-12">
+                                {{ form.modelo|as_crispy_field }}
+                            </div>
+                            <div class="col-12 col-lg-6">
+                                {{ form.stock|as_crispy_field }}
+                            </div>
+                            <div class="col-12 col-lg-6">
+                                {{ form.precioUnitario|as_crispy_field }}
+                            </div>
+                            <div class="col-12 col-lg-6">
+                                {{ form.urlImagen|as_crispy_field }}
+                            </div>
+                            <div class="col-12 col-lg-6">
+                                {{ form.nombreImagen|as_crispy_field }}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-12 col-lg-6 pb-2">
+                        
+                        <label for="inputFile" class=" requiredField">
+                            Imagen Preliminar
+                        </label>
+                        <div class="d-flex justify-content-center">
+                            <div id="loader" class="loader d-none"></div>
+                        </div>
+        
+                        <div class="text-center p-5">
+                            <img src="{{form.urlImagen.value}}" id="img-src" alt="User Image" class="img-fluid">
+                        </div>
+
+                        <div class="custom-file">
+                            <input type="file" class="custom-file-input" id="inputFile">
+                            <label class="custom-file-label" for="inputFile" >Choose file</label>
+                        </div>
+                        
+                    </div>
+                </div>
+                <div class="d-flex justify-content-end">
+                    <a href="{% url 'listarproducto' %}" class="btn btn-secondary">Cancelar</a>
+                    &nbsp;
+                    <button type="submit" class="btn btn-primary">Actualizar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock%}
+
+
+{% block js %}
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.9.2/firebase-app.js";        
+        // TODO: Add SDKs for Firebase products that you want to use
+        // https://firebase.google.com/docs/web/setup#available-libraries        
+        import { getStorage, ref, uploadBytesResumable, getDownloadURL  } from "https://www.gstatic.com/firebasejs/9.9.2/firebase-storage.js"
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyADmRuv4oe9klWtsE4TKPvJzA3fNTC1u5g",
+            authDomain: "nelsontest-e2954.firebaseapp.com",
+            projectId: "nelsontest-e2954",
+            storageBucket: "nelsontest-e2954.appspot.com",
+            messagingSenderId: "985550942616",
+            appId: "1:985550942616:web:b8ed19adf028a93709fbed"
+        };        
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        // Initialize Cloud Storage and get a reference to the service
+        const storage = getStorage(app);
+
+        function updateImage(){
+            const file = event.target.files[0];       
+            const imagen =  document.getElementById('img-src');
+            const fecha = new Date();
+
+            const loader =  document.getElementById('loader');
+            
+            const storageRef = ref(storage, 'django/' + fecha.getTime()+ file.name);
+            const uploadTask = uploadBytesResumable(storageRef, file);
+
+            // Listen for state changes, errors, and completion of the upload.
+            uploadTask.on('state_changed',
+                (snapshot) => {
+                    loader.classList.remove("d-none");
+                    imagen.classList.add("d-none");
+                    const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                    console.log('Upload is ' + progress + '% done');
+                    switch (snapshot.state) {
+                        case 'paused':
+                            console.log('Upload is paused');
+                        break;
+                        case 'running':
+                            console.log('Upload is running');
+                        break;
+                    }
+                },
+                (error) => {
+                    // A full list of error codes is available at
+                    // https://firebase.google.com/docs/storage/web/handle-errors
+                    loader.classList.add("d-none");
+                    imagen.classList.remove("d-none");
+                    switch (error.code) {
+                        case 'storage/unauthorized':
+                            console.log("User doesn't have permission to access the object");
+                        break;
+                        case 'storage/canceled':
+                            console.log('User canceled the upload');
+                        break;
+                        case 'storage/unknown':
+                            console.log('Unknown error occurred, inspect error.serverResponse');
+                        break;
+                    }
+                },
+                () => {
+                    // Upload completed successfully, now we can get the download URL
+                    getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+                        loader.classList.add("d-none");
+                        imagen.classList.remove("d-none");
+                        console.log('File Updated ', downloadURL);
+                        imagen.setAttribute('src',downloadURL); 
+                
+                        document.getElementById("id_urlImagen").value = downloadURL;
+                        document.getElementById("id_nombreImagen").value = file.name;
+                    });
+                }
+            );
+        }
+
+        const inputFile = document.getElementById('inputFile');
+        inputFile.addEventListener('change', updateImage)
+    </script>
+{% endblock%} 
