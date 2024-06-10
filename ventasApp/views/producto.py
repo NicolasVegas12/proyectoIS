@@ -42,7 +42,7 @@ def listarproducto(request):
     producto = Producto.objects.all().filter(eliminado=False).order_by('idProducto').values()
     if queryset:
         producto=Producto.objects.filter(Q(codigo__icontains=queryset)).filter(eliminado=False).distinct().order_by('idProducto').values() 
-    paginator = Paginator(producto, 5)
+    paginator = Paginator(producto, 8)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     context={'producto':producto}

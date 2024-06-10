@@ -1,15 +1,15 @@
 {% extends "plantilla.html" %}
-{% block title %} Boutique | Producto {% endblock title %}
+{% block title %} Minimarket  | Producto {% endblock title %}
 
 {% block content %}
     <div class="p-3">
         <div class="card mt-3">
         <div class="card-header d-flex justify-content-between p-3">
             <div>
-                <h1 class="card-title align-items-center">LISTADO DE PRODUCTOS</h1>
+                <h1 class="card-title align-items-center" style="font-weight: 700;  margin: 5px 30px;">LISTADO DE PRODUCTOS</h1>
             </div>
             {% if perms.ventasApp.add_producto %}
-            <div class="ml-auto">
+            <div class="ml-auto" style="margin-right: 30px;">
                 <a href="{% url 'agregarproducto' %}" class='btn btn-sm btn-primary'>
                     <i class='fas fa-plus'></i> NUEVO
                 </a>
@@ -17,7 +17,7 @@
             {% endif %}
 
         </div>
-        <div class="card-body">
+        <div class="card-body" style="margin: 5px 40px;">
             <div class="row">
                 <div class="col-12 col-md-4">
                     <form action="" method="GET">

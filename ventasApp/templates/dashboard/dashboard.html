@@ -1,5 +1,5 @@
 {% extends "plantilla.html" %}
-{% block title %} Boutique | Categoria {% endblock title %}
+{% block title %} Minimarket  | Categoria {% endblock title %}
 {% block css %} 
 <style>
     .contador{
@@ -82,13 +82,34 @@
                     </div>
                 </div>
             </div>
+
+            <div class="row">
+                <div class="col-12 pb-2">
+                    <div class="d-flex py-3 px-5 align-items-center justify-content-center" style="background-color: #fff;border-radius: 1rem;">
+                        <!-- <h4 style="font-weight: bold;">REPORTES</h4> -->
+                        <input type="date" id="fecha-seleccionada" />
+                        <button onclick="actualizarGrafico(),actualizarGrafico1()">Actualizar Gráfico</button>
+
+
+                    </div>
+                </div>
+            </div>
+
             <div class="row">
                 <div class="col-12 col-lg-6 pb-2">
                     <div class="p-4 text-center" style="background-color: #fff;border-radius: 1rem;">
                         <h6 style="font-weight: bold;">VENTAS POR TABAJADOR</h6>
-                        <canvas id="myChartLine"></canvas>
+                        <canvas id="myChartLine0"></canvas>
                     </div>
-                </div>                
+                </div>
+                
+                <div class="col-12 col-lg-6 pb-2">
+                    <div class="p-4 text-center" style="background-color: #fff;border-radius: 1rem;">
+                        <h6 style="font-weight: bold;">CLIENTE POR COMPRAS</h6>
+                        <canvas id="myChartLine1"></canvas>
+                    </div>
+                </div>
+
                 <div class="col-12 col-lg-6 pb-2">
                     <div class="p-4 text-center" style="background-color: #fff;border-radius: 1rem;">
                         <h6 style="font-weight: bold;">PRODUCTOS MÁS VENDIDOS</h6>
@@ -161,31 +182,87 @@
         
     </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js" integrity="sha512-ElRFoEQdI5Ht6kZvyzXhYG9NqjtkmlkfYk0wr6wHxU9JEHakS7UJZNeml5ALk+8IKlU6jDgMabC3vkumRokgJA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script>
-        let endpointLine = '/api/get_dataLine/'
-        $.ajax({
-            method:"GET",
-            url: endpointLine,
-            success: function(response){
-                console.log(response)
+    
+    <!-- --------------------------------------------------------------------------------------------------------------------- -->
 
-                const config = {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+    let myChart;  // Declara una variable global para almacenar la referencia al gráfico
+
+    function actualizarGrafico() {
+    // Obtener la fecha seleccionada por el usuario
+    const fechaSeleccionada = document.getElementById('fecha-seleccionada').value;
+
+    // Realizar la solicitud AJAX para obtener los datos actualizados
+    $.ajax({
+        method: "GET",
+        url: `/api/get_dataLine/?fecha=${fechaSeleccionada}`,
+        success: function (response) {
+            // Destruir el gráfico existente antes de crear uno nuevo
+            if (myChart) {
+                myChart.destroy();
+            }
+
+            // Crear el nuevo gráfico con los datos actualizados
+            const config = {
                 type: 'line',
                 data: response,
                 options: {}
-                };
-                const myChart = new Chart(
-                document.getElementById('myChartLine'),
+            };
+            myChart = new Chart(
+                document.getElementById('myChartLine0'),
                 config
-                );
-            },
-            error: function(error_data){
-                console.log("error")
-                console.log(error_data)
-            }
-        })
+            );
+        },
+        error: function (error_data) {
+            console.log("error");
+            console.log(error_data);
+        }
+    });
+    }
         
-      </script>
+    </script>
+
+
+   <script>        
+     let myChart1;  // Declara una variable global para almacenar la referencia al gráfico
+
+    function actualizarGrafico1() {
+    // Obtener la fecha seleccionada por el usuario
+    const fechaSeleccionada = document.getElementById('fecha-seleccionada').value;
+
+    // Realizar la solicitud AJAX para obtener los datos actualizados
+    $.ajax({
+        method: "GET",
+        url: `/api/get_top_clients_chart/?fecha=${fechaSeleccionada}`,
+        success: function (response) {
+            // Destruir el gráfico existente antes de crear uno nuevo
+            if (myChart1) {
+                myChart1.destroy();
+            }
+
+            // Crear el nuevo gráfico con los datos actualizados
+            const config = {
+                type: 'bar',
+                data: response,
+                options: {}
+            };
+            myChart1 = new Chart(
+                document.getElementById('myChartLine1'),
+                config
+            );
+        },
+        error: function (error_data) {
+            console.log("error");
+            console.log(error_data);
+        }
+    });
+    }
+    </script>
+
+
+
     <script>
         let endpointDona = '/api/get_dataDona/'
         $.ajax({

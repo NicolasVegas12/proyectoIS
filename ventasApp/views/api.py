@@ -1,6 +1,8 @@
 from django.shortcuts import render,redirect 
 from django.http import JsonResponse
 from ventasApp.models import * 
+from datetime import date,datetime
+from django.db.models import Count
 
 def get_countVentas(request,*args,**kwargs):
     cantidad = PedidoVenta.objects.filter(eliminado=False).count()
@@ -19,14 +21,27 @@ def get_countCompras(request,*args,**kwargs):
     return JsonResponse(data)
 
 def get_dataLine(request,*args,**kwargs):
-    list_trabajadores = []
+
+    fecha_seleccionada = request.GET.get('fecha', None)
+
+    list_trabajadores = []    
     list_ventasxtrabajador = []
-    trabajadores = Trabajador.objects.all().filter(eliminado=False).order_by('-idTrabajador').values()
-    for t in trabajadores:
-        trabajador = Trabajador.objects.get(idTrabajador=t['idTrabajador'])
-        cuenta = PedidoVenta.objects.filter(trabajador=trabajador).filter(eliminado=False).count()
-        list_trabajadores.append(str(t['apellidos'])+str(' ')+str(t['nombres']))
-        list_ventasxtrabajador.append(cuenta)
+
+    if fecha_seleccionada:
+        # Convierte la cadena de fecha a un objeto de fecha
+        fecha_seleccionada = datetime.strptime(fecha_seleccionada, "%Y-%m-%d").date()
+        # Filtra los pedidos por el año de la fecha de emisión
+        pedidos = PedidoVenta.objects.filter(fechaEmision__year=fecha_seleccionada.year, eliminado=False)
+    else:
+        # Si no se proporciona una fecha, obtén todos los pedidos no eliminados
+        pedidos = PedidoVenta.objects.filter(eliminado=False)
+
+    trabajadores = Trabajador.objects.filter(pedidoventa__in=pedidos).annotate(cantidad_pedidos=Count('pedidoventa'))
+    
+    for t in trabajadores:      
+        list_trabajadores.append(f"{t.apellidos} {t.nombres}")
+        list_ventasxtrabajador.append(t.cantidad_pedidos)
+
     data = {
           'labels': list_trabajadores,
           'datasets': [{
@@ -37,6 +52,44 @@ def get_dataLine(request,*args,**kwargs):
           }]
     };
     return JsonResponse(data)
+
+def get_top_clients_chart(request, *args, **kwargs):
+    
+    fecha_seleccionada = request.GET.get('fecha', None)
+    
+    list_clientes = []
+    list_compras_x_cliente = []
+
+    # Filtrar por fecha si se proporciona una fecha válida
+    if fecha_seleccionada:
+        # Convierte la cadena de fecha a un objeto de fecha
+        fecha_seleccionada = datetime.strptime(fecha_seleccionada, "%Y-%m-%d").date()
+        # Filtra los pedidos por el año de la fecha de emisión
+        pedidos = PedidoVenta.objects.filter(fechaEmision__year=fecha_seleccionada.year, eliminado=False)
+    else:
+        # Si no se proporciona una fecha, obtén todos los pedidos no eliminados
+        pedidos = PedidoVenta.objects.filter(eliminado=False)
+
+    # Obtener el top 10 de clientes con más compras
+    clientes_con_pedidos = Cliente.objects.filter(pedidoventa__in=pedidos).annotate(cantidad_pedidos=Count('pedidoventa'))
+
+    for cliente in clientes_con_pedidos:
+        list_clientes.append(str(cliente.apellidos) + ' ' + str(cliente.nombres))
+        list_compras_x_cliente.append(cliente.cantidad_pedidos)
+
+    data = {
+        'labels': list_clientes,
+        'datasets': [{
+            'label': 'Cantidad de Compras',
+            'backgroundColor': 'rgb(75, 192, 192)',
+            'borderColor': 'rgb(75, 192, 192)',
+            'data': list_compras_x_cliente,
+        }]
+    }
+
+    return JsonResponse(data)
+
+
 
 def get_dataDona(request,*args,**kwargs):
     list_productos = []

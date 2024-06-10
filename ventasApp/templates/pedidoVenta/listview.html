@@ -1,8 +1,10 @@
+<!DOCTYPE html>
+<html lang="en">
 <style>
     body{
-        padding: 10px;
-        margin: 10px;
-        font-size: 15px;
+        padding: 5px;
+        margin: 0px;
+        font-size: 10px;
     }
     .border-0{
         margin-bottom: 0px;padding-bottom: 0px;
@@ -18,106 +20,129 @@
         border: hidden;
     } */
 </style>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+    <title>Ticket de Venta</title>
+    <style>
+        @page{
+            size: {{ pdf_page_size }};  /* Utiliza el tamaño de página proporcionado en el contexto */
+            margin: 10mm;
+        }
+
+        p {
+            /* margin-bottom: 0px; */
+            padding: 0;
+            line-height: 2;
+        }
+
+        .centered-text {
+            text-align: center; /* Centra el texto */
+            line-height: 1.2; /* Ajusta el espaciado entre líneas */
+        }
+        .left-aligned-text {
+            text-align: left; /* Alinea el texto a la izquierda */
+            line-height: 1.2; /* Ajusta el espaciado entre líneas */
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+        }
+    </style>
+</head>
 
 <body>
-    <table>
-        <tbody>
-            <tr>
-                <td rowspan="2" style="text-align: center;" colspan="3">    
-                    <img src="https://firebasestorage.googleapis.com/v0/b/nelsontest-e2954.appspot.com/o/django%2Ff073f459565c979bc4976bc9f18fc4e2.jpg?alt=media&token=5b75fe6f-380a-448a-bf1d-0cae29cbf67d" alt="" style="margin-top: -100px;margin-bottom: 0px;padding-bottom: 0px;width: 250px;">   
-                    <h1 style="color: #62015F;font-size: 32px;margin-top: -20px;padding-top: -20px;">Mega Centro</h1>
-                </td>
-                <td colspan="2" style="text-align: center;border: 1px solid #000;">
-                    <p style="margin-bottom: 0px;padding-bottom: 0px;">RUC 1.000.000-9</p>
-                    <p style="margin-top: 0px;padding-top: 0px;margin-bottom: 0px;padding-bottom: 0px;">
-                        {{documento.tipoDocumento}}
-                        ELECTRÓNICA</p>
-                    <p style="margin-top: 0px;padding-top: 0px;">Nro: {{documento.serie}}-'0000'{{documento.numero}}</p>
-                </td>
-            </tr>
-            <tr>
-                <td colspan="2" style="padding-left: 0px;">
-                    <p style="margin-bottom: 0px;padding-bottom: 0px;">Dirección de la Empresa</p>
-                    <p style="margin-top: 0px;padding-top: 0px;">
-                        Fecha de Emision : {{pedidoVenta.fechaEmision|date:"d/m/Y"}}
-                    </p>
-                </td>
-            </tr>
-        </tbody>
-    </table>
+    
+    
+        <p class="centered-text">
+            ** LA BOLSITA ** <br>
+            Calle 24 de Abril - FDM, Trujillo <br>
+            RUC 1.000.000-9 <br>
+            Att al cliente: 906264900 <br>
+            Donde encuentras todo lo que buscas <br>
+            ______________________________________________________<br>
+            BOLETA DE VENTA ELECTRÓNICA: {{pedidoVenta.codigo}} <br>
+        </p>
+        <p class="left-aligned-text">
+            DNI: {{cliente.documentoIdentidad}} <br>
+            CLIENTE: {{cliente.nombres}} {{cliente.apellidos}} <br>
+            FECHA EMISIÓN: {{pedidoVenta.fechaEmision|date:"d/m/Y"}} <br>
+            FECHA ENTREGA: {{pedidoVenta.fechaEntrega|date:"d/m/Y"}} <br>
+            MONEDA: {{pedidoVenta.tipoMoneda}} <br>
+            IGV: {{pedidoVenta.tasaIgv}}
+            ______________________________________________________
+        </p>
+
+        <!-- <div class="centered-text">
+            <p>
+                <strong>** LA BOLSITA **</strong> <br>
+                Calle 24 de Abril - FDM, Trujillo <br>
+                RUC 1.000.000-9 <br>
+                Att al cliente: 906264900 <br>
+                Donde encuentras todo lo que buscas <br>
+            </p>
+                <hr>
+            <p>
+                BOLETA DE VENTA ELECTRÓNICA: {{pedidoVenta.codigo}}
+            </p>
+        </div>
+        
+        <div class="left-aligned-text">
+            <p>
+                DNI: {{cliente.documentoIdentidad}} <br>
+                CLIENTE: {{cliente.nombres}} {{cliente.apellidos}} <br>
+                FECHA EMISIÓN: {{pedidoVenta.fechaEmision|date:"d/m/Y"}} <br>
+                FECHA ENTREGA: {{pedidoVenta.fechaEntrega|date:"d/m/Y"}} <br>
+                MONEDA: {{pedidoVenta.tipoMoneda}} <br>
+                IGV: {{pedidoVenta.tasaIgv}}
+            </p>
+            <hr>
+        </div> -->
+    
 
     <table>
-        <thead >
-            <tr>
-                <th class="border-0" colspan="4" style="background: rgb(61, 27, 124);color: #fff;padding-bottom: 2x;padding-top: 5px;">CLIENTE</th>
-                <th rowspan="4"><img src="https://upload.wikimedia.org/wikipedia/commons/1/14/Codigo_QR.svg" alt=""></th>
-            </tr>
-        </thead> 
-        <tbody>
-            <tr style="margin-bottom: 0px;padding-bottom: 0px;">
-                <td>CLIENTE</td>
-                <td colspan="3">{{cliente.apellidos}} {{cliente.nombres}}</td>
-            </tr>
-            <tr class="border-0">
-                <td>DIRECCION</td>
-                <td colspan="3">{{cliente.direccion}}</td>
-            </tr>
-            <tr class="border-0">
-                <td colspan="2">DOC. IDENTIDAD</td>
-                <td colspan="2">{{cliente.tipoDocumentoIdentidad}} - {{cliente.documentoIdentidad}}</td>
-            </tr>
-            <tr style="margin-top: 0px;padding-top: 0px;">
-                <td colspan="2">TELEFONO</td>
-                <td colspan="2">{{cliente.telefono}}</td>
-            </tr>
-        </tbody>
-    </table>
-    <table style="padding-bottom: 2x;padding-top: 5px;">
-        <thead>
-            <tr style="border: 1px solid rgb(61, 27, 124);background: rgb(61, 27, 124);color: #fff;">
-                <th colspan="6">DETALLE DEL DOCUMENTO</th>
-            </tr>
-            <tr style="border: 1px solid #c4c4c4;">
-                <th>Código</th>
-                <th>Producto</th>
-                <th>Precio (c/u)</th>                
-                <th>Cantidad</th>
-                <th>Descuento</th>
-                <th>Precio (IGV: {{pedidoVenta.tasaIgv}})</th>
-            </tr>
+        <thead style="margin: 0; padding: 0; font-family: 'Courier New', Courier, monospace;">         
+           <tr>
+            <th colspan="1">Cantidad</th>
+            <th colspan="5">Producto</th>
+            <th colspan="1">Precio Unit.</th>
+            <th colspan="1">Monto (+IGV)</th> 
+           </tr>                               
         </thead>
-        <tbody>
+        <tbody style="margin: 0; padding: 0; font-family: 'Courier New', Courier, monospace;">
             {% for item in detalle %}
-            <tr style="border: 1px solid #c4c4c4;">
-                <td>{{ item.producto_id }}</td>
-                <td>Producto</td> 
-                <td>{{ item.precioUnitario }}</td>                
-                <td>{{ item.cantidad }}</td>
-                <td>{{ item.descuentoUnitario }}</td>
-                <td>{{ item.precio }}</td>
+            <tr style="margin: 0; padding: 0;">
+                <td colspan="1">{{ item.cantidad }}</td>
+                <td colspan="5">{{ item.producto.nombre }}</td>
+                <td colspan="1">{{ item.precioUnitario }}</td>
+                <td colspan="1">{{ item.precio }}</td>
             </tr>
             {% endfor %}
-            <tr>
-                <td colspan="4"></td>
-                <td style="border: 1px solid #c4c4c4;">Subtotal:</td>
-                <td style="border: 1px solid #c4c4c4;">{{pedidoVenta.tasaIgv}}</td>
+            <!-- <tr style="margin: 0; padding: 0;">
+                <td colspan="1"></td>
+                <td colspan="6">IGV:</td>
+                <td colspan="1">{{pedidoVenta.tasaIgv}}</td>
+            </tr> -->
+            <tr style="margin: 0; padding: 0;">
+                <td colspan="1"></td>
+                <td colspan="6">Decuento:</td>
+                <td colspan="1">{{pedidoVenta.descuento}}</td>
             </tr>
-            <tr>
-                <td colspan="4" ></td>
-                <td style="border: 1px solid #c4c4c4;">Decuento:</td>
-                <td style="border: 1px solid #c4c4c4;">{{pedidoVenta.descuento}}</td>
-            </tr>
-            <tr>
-                <td colspan="4"></td>
-                <td style="border: 1px solid #c4c4c4;">Total:</td>
-                <td style="border: 1px solid #c4c4c4;">{{pedidoVenta.total}}</td>
+            <tr style="margin: 0; padding: 0;">
+                <td colspan="1"></td>
+                <td colspan="6">TOTAL:</td>
+                <td colspan="1">{{pedidoVenta.total}}</td>
             </tr>
         </tbody>
     </table>
+    ______________________________________________________<br>
+    <img src="data:image/png;base64,{{ qr_img_base64 }}" alt="CodigoQR" />
+    <p>
+        
+        <!-- <img src="data:image/png;base64,{{ qr_file_name }}" alt="Código QR"> <br> -->
+        LE ATENDIÓ: {{trabajador.nombres}} {{trabajador.apellidos}}
+    </p>
 
-    <div style="text-align: center;">
-        <span>Representación impresa de Boleta Electronica - Sistema MegaCentro</span>
-    </div>
 </body>
-
+</html>

@@ -1,19 +1,21 @@
 {% extends "plantilla.html" %}
-{% block title %} Boutique | Nota de Almacén {% endblock title %}
+{% block title %} Minimarket  | Nota de Almacén {% endblock title %}
 
 {% block content %}
 {% load crispy_forms_tags %}
 <div class="py-3">
     <div class="card card-info mx-4 my-4">
-        <div class="card-header">
-            <h1 class="card-title">EDITAR NOTA DE ALMACÉN</h1>
+        <div class="card-header"style="background-color:#fff;">
+            <h1 class="card-title" style="color: #000; font-weight: 600; margin: 15px 50px;">EDITAR NOTA DE ALMACÉN</h1>
         </div>
-        <div class="card-body">
+        <div class="card-body" style="margin: 20px 50px;">
             <form method="post">
                 {% csrf_token %}
                 <div class="row">                
-                    <div class="col-12 col-lg-6">
+                    <div class="col-12 col-lg-3">
                         {{ form.codigo|as_crispy_field }}
+                    </div>
+                    <div class="col-12 col-lg-3">                  
                     </div>
                     <div class="col-12 col-lg-3">
                         {{ form.fechaEmision|as_crispy_field }}
@@ -21,18 +23,25 @@
                     <div class="col-12 col-lg-3">
                         {{ form.fechaEntrega |as_crispy_field }}
                     </div>
-                    <div class="col-12 col-lg-3">
-                        {{ form.pedidoVenta|as_crispy_field }}
-                    </div>
-                    <div class="col-12 col-lg-3">
-                        {{ form.ordenCompra |as_crispy_field }}
-                    </div>
-                    <div class="col-12 col-lg-3">
-                        {{ form.trabajador|as_crispy_field }}
-                    </div>
+
                     <div class="col-12 col-lg-3">
                         {{ form.tipoOperacion|as_crispy_field }}
                     </div>  
+                    <div class="col-12 col-lg-3">                  
+                    </div>
+                    {% if confirmacion %}
+                    <div class="col-12 col-lg-3">
+                        {{ form.pedidoVenta|as_crispy_field }}
+                    </div>               
+                    {% else %}
+                    <div class="col-12 col-lg-3">
+                        {{ form.ordenCompra |as_crispy_field }}
+                    </div>
+                    {% endif %}
+                    <div class="col-12 col-lg-3" >
+                        {{ form.trabajador|as_crispy_field }}
+                    </div>
+                   
                     <div class="col-12 col-lg-4">
                         {{ form.serie|as_crispy_field }}
                     </div> 

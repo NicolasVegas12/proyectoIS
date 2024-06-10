@@ -24,8 +24,7 @@ def agregarcategoria(request):
                 element = Categoria.objects.all().last()
                 element.usuarioRegistro =  request.session['user_logged']
                 element.save()
-                return redirect("listarcategoria") 
-
+                return redirect("listarcategoria")                 
     else:
         form=CategoriaForm()
         context={'form':form} 
@@ -36,7 +35,7 @@ def listarcategoria(request):
     categoria = Categoria.objects.all().filter(eliminado=False).order_by('idCategoria').values()
     if queryset:
         categoria=Categoria.objects.filter(Q(descripcion__icontains=queryset)).filter(eliminado=False).distinct().order_by('idCategoria').values() 
-    paginator = Paginator(categoria, 5)
+    paginator = Paginator(categoria, 8)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     context={'categoria':categoria}

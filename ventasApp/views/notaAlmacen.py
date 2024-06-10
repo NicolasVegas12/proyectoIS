@@ -72,7 +72,7 @@ def listarnotaAlmacen(request):
     notaAlmacen = NotaAlmacen.objects.all().filter(eliminado=False).order_by('-idNotaAlmacen').values()
     if queryset:
         notaAlmacen=NotaAlmacen.objects.filter(Q(codigo__icontains=queryset)).filter(eliminado=False).distinct().order_by('-idNotaAlmacen').values() 
-    paginator = Paginator(notaAlmacen, 3)
+    paginator = Paginator(notaAlmacen, 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     context={'notaAlmacen':notaAlmacen}
@@ -91,10 +91,12 @@ def editarnotaAlmacen(request,id):
         pedidoVenta_exits = (PedidoVenta.objects.filter(idPedidoVenta=notaAlmacen.pedidoVenta_id).count()>0)
         if pedidoVenta_exits:
             pedidoVenta=PedidoVenta.objects.get(idPedidoVenta=notaAlmacen.pedidoVenta_id)
-            context={"form":form,'id':pedidoVenta.idPedidoVenta} 
+            confirmacion = True
+            context={"form":form,'id':pedidoVenta.idPedidoVenta, 'confirmacion':confirmacion} 
         else :
             ordenCompra=OrdenCompra.objects.get(idOrdenCompra=notaAlmacen.ordenCompra_id) 
-            context={"form":form,'id':ordenCompra.idOrdenCompra}
+            confirmacion = False
+            context={"form":form,'id':ordenCompra.idOrdenCompra, 'confirmacion':confirmacion}
         return render(request,"notaAlmacen/edit.html",context)
 
 def eliminarnotaAlmacen(request,id):

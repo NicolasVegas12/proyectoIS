@@ -1,5 +1,5 @@
 {% extends "plantilla.html" %}
-{% block title %} Boutique | Producto {% endblock title %}
+{% block title %} Minimarket  | Producto {% endblock title %}
 {% load static %}
 {% block css %} 
     <link rel="stylesheet" href="{% static '/adminlte/personalize/css/style.css' %}">
@@ -9,10 +9,10 @@
 {% load crispy_forms_tags %}
 <div class="p-3">
     <div class="card card-info mx-4 my-4">
-        <div class="card-header">
-            <h1 class="card-title">AGREGAR PRODUCTO</h1>
+        <div class="card-header" style="background-color:#fff;">
+            <h1 class="card-title" style="color: #000; font-weight: 600; margin: 15px 50px;">AGREGAR PRODUCTO</h1>
         </div>
-        <div class="card-body">
+        <div class="card-body" style="margin: 20px 50px;">
             <form method="post">
                 {% csrf_token %}
                 <div class="row">

@@ -1,53 +1,66 @@
 {% extends "plantilla.html" %}
-{% block title %} Boutique | Nota de Almacén {% endblock title %}
+{% block title %} Minimarket  | Nota de Almacén {% endblock title %}
 
 {% block content %}
 {% load crispy_forms_tags %}
 <div class="p-3">
     <div class="card card-info mx-4 my-4">
-        <div class="card-header">
-            <h1 class="card-title">AGREGAR NOTA DE ALMACÉN</h1>
+        <div class="card-header"style="background-color:#fff;">
+            <h1 class="card-title" style="color: #000; font-weight: 600; margin: 15px 50px;">AGREGAR NOTA DE ALMACÉN</h1>
         </div>
-        <div class="card-body">
+       
+
+        <div class="card-body" style="margin: 20px 50px;">
             <form method="post">
             {% csrf_token %}
             <div class="row">                
                 <div class="col-12 col-lg-3">
                     {{ form.codigo|as_crispy_field }}
                 </div>
-                <div class="col-12 col-lg-3">
-                    
+
+                <div class="col-12 col-lg-3">                  
                 </div>
+
                 <div class="col-12 col-lg-3">
                     {{ form.fechaEmision|as_crispy_field }}
                 </div>
                 <div class="col-12 col-lg-3">
                     {{ form.fechaEntrega |as_crispy_field }}
                 </div>
+      
+                <div class="col-12 col-lg-3" id="id_tipoOperacion">
+                    {{ form.tipoOperacion|as_crispy_field }}
+                </div>
 
-                <div class="col-12 col-lg-3">
+                <div class="col-12 col-lg-3">                  
+                </div>
+
+                <div class="col-12 col-lg-3" id="pedidoVenta" >
                     {{ form.pedidoVenta|as_crispy_field }}
                 </div>
-                <div class="col-12 col-lg-3">
+                
+                <div class="col-12 col-lg-3" id="ordenCompra">
                     {{ form.ordenCompra |as_crispy_field }}
                 </div>
-
                 
                 <div class="col-12 col-lg-3">
                     {{ form.trabajador|as_crispy_field }}
                 </div>
+
                 <div class="col-12 col-lg-3">
-                    {{ form.tipoOperacion|as_crispy_field }}
-                </div>                   
+                    {{ form.estado|as_crispy_field }}
+                </div>  
+                             
+                <div class="col-12 col-lg-3">                  
+                </div>
+
                 <div class="col-12 col-lg-3">
                     {{ form.serie|as_crispy_field }}
                 </div> 
                 <div class="col-12 col-lg-3">
                     {{ form.numero|as_crispy_field }}
                 </div>                  
-                <div class="col-12 col-lg-3">
-                    {{ form.estado|as_crispy_field }}
-                </div>  
+               
 
             </div>
             <hr class="my-2" style="background-color: #c4c4c4;">
@@ -86,6 +99,41 @@
 {% endblock%} 
 
 {% block js %}
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+<script>
+$(document).ready(function () {
+    // Obtén referencias a los campos y divs
+    var tipoOperacionField = $('#id_tipoOperacion select');
+    var ordenCompraField = $('#ordenCompra');
+    var pedidoVentaField = $('#pedidoVenta');
+
+    // Función para actualizar la visibilidad de los campos según la operación seleccionada
+    function actualizarVisibilidad() {
+        var tipoOperacionValue = tipoOperacionField.val();
+        console.log("Tipo de operación seleccionado:", tipoOperacionValue);
+
+        // Oculta ambos campos al principio
+        ordenCompraField.hide();
+        pedidoVentaField.hide();
+
+        // Muestra el campo correspondiente según la operación seleccionada
+        if (tipoOperacionValue === 'ENTRADA') {
+            ordenCompraField.show();
+        } else if (tipoOperacionValue === 'SALIDA') {
+            pedidoVentaField.show();
+        }
+    }
+
+    // Asigna la función al evento change
+    tipoOperacionField.change(actualizarVisibilidad);
+
+    // Llama a la función una vez al cargar la página para establecer la visibilidad inicial
+    actualizarVisibilidad();
+});
+
+
+</script>
+
     <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     {% if messages %}
         {% for m in messages %}

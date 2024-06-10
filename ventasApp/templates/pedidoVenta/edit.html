@@ -1,14 +1,14 @@
 {% extends "plantilla.html" %}
-{% block title %} Boutique | Pedido de Venta {% endblock title %}
+{% block title %} Minimarket  | Pedido de Venta {% endblock title %}
 
 {% block content %}
 {% load crispy_forms_tags %}
 <div class="py-3">
     <div class="card card-info mx-4 my-4">
-        <div class="card-header">
-            <h1 class="card-title">EDITAR PEDIDO DE VENTA</h1>
+        <div class="card-header" style="background-color:#fff;">
+            <h1 class="card-title" style="color: #000; font-weight: 600; margin: 15px 50px;">EDITAR PEDIDO DE VENTA</h1>
         </div>
-        <div class="card-body">
+        <div class="card-body" style="margin: 20px 50px;">
             <form method="post">
                 {% csrf_token %}
                 <div class="row">                

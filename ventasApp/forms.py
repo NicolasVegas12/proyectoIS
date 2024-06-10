@@ -211,6 +211,7 @@ class NotaAlmacenForm(forms.ModelForm):
             'estado',
         ]
         widgets = {
+            'tipoOperacion': forms.Select(attrs={'id': 'id_tipoOperacion'}),
             'serie': forms.TextInput(attrs={'readonly': True}),
             'numero': forms.TextInput(attrs={'readonly': True}),
             'codigo': forms.TextInput(attrs={'readonly': True}),

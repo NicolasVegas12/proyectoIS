@@ -1,3 +1,8 @@
+import qrcode
+import base64
+from io import BytesIO
+from django.template.loader import render_to_string
+
 from django.http import HttpResponse
 from pydoc import describe
 from django.shortcuts import render,redirect 
@@ -43,8 +48,23 @@ def agregarpedidoVenta(request):
             i+=1
         
 
-        pedidoVenta = PedidoVenta.objects.create(
+        
+        for p in arregloObjetoProductos:
+            producto_id = p['Producto']
+            cantidad = p['Cantidad']
+
+            # Retrieve the product from the database
+            product = Producto.objects.get(idProducto=producto_id)
+
+            # Check if the entered quantity exceeds the available stock
+            if int(cantidad) > product.stock and int(cantidad) < 0:
+                print("Cantidad no valida: La cantidad ingresada para el producto {} excede el stock disponible.".format(product.nombre))
+                messages.error(request, "Ocurrio algun error en el registro")
+                return redirect("agregarpedidoVenta")
+            else:
+                pedidoVenta = PedidoVenta.objects.create(
                         trabajador = Trabajador.objects.get(idTrabajador=form['trabajador'].value()),
+
                         #trabajador = Trabajador.objects.filter(eliminado=False).value(),
                         cliente = Cliente.objects.get(idCliente=form['cliente'].value()),
                         formaPago = FormaPago.objects.get(idFormaPago=form['formaPago'].value()),
@@ -64,36 +84,41 @@ def agregarpedidoVenta(request):
                         usuarioRegistro = request.session['user_logged']
                     )
         
-        pedidoVenta.save()
+                pedidoVenta.save()
 
-        #Creando Documento de venta
-        element = PedidoVenta.objects.all().last()
-        cantidadD = PedidoVenta.objects.count()        
-        documentoPedidoVenta = DocumentoVenta.objects.create(
-                        pedidoVenta = element,
-                        codigo = str('DOC-') + str(cantidadD+1),
-                        serie = '00',
-                        numero = str(cantidadD+1),
-                        tipoDocumento = form['tipoDocumento'].value(),
-                        usuarioRegistro = request.session['user_logged']
-                    )
-        documentoPedidoVenta.save()
+                #Creando Documento de venta
+                element = PedidoVenta.objects.all().last()
+                cantidadD = PedidoVenta.objects.count()        
+                documentoPedidoVenta = DocumentoVenta.objects.create(
+                                pedidoVenta = element,
+                                codigo = str('DOC-') + str(cantidadD+1),
+                                serie = '00',
+                                numero = str(cantidadD+1),
+                                tipoDocumento = form['tipoDocumento'].value(),
+                                usuarioRegistro = request.session['user_logged']
+                            )
+                documentoPedidoVenta.save()
 
+                
+                
+                
+                detalle = DetallePedidoVenta(
+                        pedidoVenta=element,
+                        producto=product,
+                        cantidad=cantidad,
+                        precioUnitario=p['PrecioUnitario'],
+                        descuentoUnitario=p['DescuentoUnitario'],
+                        precio=p['PrecioProductoTotal'],
+                        usuarioRegistro=request.session['user_logged']
+                    )  
+                detalle.save()
+                messages.success(request, "Pedido de Venta registrada.")
 
-        for p in arregloObjetoProductos:
-            detalle = DetallePedidoVenta(
-                pedidoVenta = element,
-                producto= Producto.objects.get(idProducto=p['Producto']), 
-                cantidad=p['Cantidad'],
-                precioUnitario=p['PrecioUnitario'],
-                descuentoUnitario=p['DescuentoUnitario'],
-                precio=p['PrecioProductoTotal'],
-                usuarioRegistro = request.session['user_logged']
-            )
-            detalle.save()
-            
-        messages.success(request, "Pedido de Venta registrada.")
-        return redirect("listarpedidoVenta") 
+                #product.stock -= int(cantidad)
+                #product.save()
+
+        return redirect("listarpedidoVenta")
+      
     
     else:
         cantidad = PedidoVenta.objects.count()
@@ -107,7 +132,7 @@ def listarpedidoVenta(request):
     pedidoVenta = PedidoVenta.objects.all().order_by('-idPedidoVenta').values()
     if queryset:
         pedidoVenta=PedidoVenta.objects.filter(Q(codigo__icontains=queryset)).distinct().order_by('-idPedidoVenta').values() 
-    paginator = Paginator(pedidoVenta, 5)
+    paginator = Paginator(pedidoVenta, 8)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     return render(request,"pedidoVenta/listar.html",{'page_obj': page_obj})
@@ -222,17 +247,67 @@ def eliminarpedidoVenta(request,id):
     messages.success(request, "Pedido de venta eliminado.")
     return redirect("listarpedidoVenta")
 
+from xhtml2pdf import pisa
+from django.template.loader import get_template
+from django.http import HttpResponse
+
+def render_to_pdf(template_path, context_dict, filename):
+    template = get_template(template_path)
+    html = template.render(context_dict)
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="{filename}.pdf"'
+
+    pisa_status = pisa.CreatePDF(html, dest=response, show_error_as_pdf=True, encoding='UTF-8')
+    if pisa_status.err:
+        return HttpResponse('Error al generar el PDF', content_type='text/plain')
+
+    return response
+
+
 
 def ListPedidoVentaPdf(View, id):
     pedidoVenta = PedidoVenta.objects.get(idPedidoVenta=id)
     cliente = Cliente.objects.get(idCliente=pedidoVenta.cliente_id)
-    detalle = DetallePedidoVenta.objects.all().filter(pedidoVenta=id).filter(eliminado=False).values()
+    trabajador = Trabajador.objects.get(idTrabajador=pedidoVenta.trabajador_id)
+    detalle = DetallePedidoVenta.objects.all().select_related('producto').filter(pedidoVenta=id).filter(eliminado=False)
     documento = DocumentoVenta.objects.get(pedidoVenta=id)
+
+
     data = {
         'cliente':cliente,
         'pedidoVenta': pedidoVenta,
         'documento':documento,
-        'detalle': detalle
+        'detalle': detalle,
+        'trabajador':trabajador,
+        'pdf_page_size': 'A6', 
     }
-    pdf = render_to_pdf('pedidoVenta/listview.html', data)
+    pdf = render_to_pdf('pedidoVenta/listview.html', data, 'mi_ticket')
+
+    #pdf = render_to_pdf('pedidoVenta/listview.html', data)
     return HttpResponse(pdf, content_type='application/pdf')
+
+
+
+def generar_qr(request):
+    # URL del PDF que deseas enlazar
+    url_pdf = 'http://127.0.0.1:8000/pedidoVenta/pdf/4'
+
+    # Genera el código QR en una imagen
+    qr_img = qrcode.make(url_pdf)
+
+    # Guarda la imagen en memoria
+    buffer = BytesIO()
+    qr_img.save(buffer, format='PNG')
+    buffer.seek(0)
+
+    # Convierte la imagen a una cadena base64
+    qr_img_base64 = base64.b64encode(buffer.getvalue()).decode()
+    
+    print(qr_img_base64)
+
+    # Renderiza el contenido de la plantilla con el código QR
+    context = {'qr_img_base64': qr_img_base64}
+    qr_html = render_to_string('pedidoVenta/listview.html', context)
+
+    # Devuelve la respuesta con el HTML que incluye el código QR
+    return HttpResponse(qr_html)

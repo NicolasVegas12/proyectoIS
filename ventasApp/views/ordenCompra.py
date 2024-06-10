@@ -222,15 +222,15 @@ def activarordenCompra(request,id,activo):
 def ListOrdenCompraPdf(View, id):
     ordenCompra = OrdenCompra.objects.get(idOrdenCompra=id)
     proveedor = Proveedor.objects.get(idProveedor=ordenCompra.proveedor_id)
-    detalle = DetalleOrdenCompra.objects.all().filter(ordenCompra=id).filter(eliminado=False).values()
-    producto= DetalleOrdenCompra.objects.select_related('Producto')
+    detalle = DetalleOrdenCompra.objects.all().select_related('producto').filter(ordenCompra=id).filter(eliminado=False)
+    # producto= DetalleOrdenCompra.objects.select_related('Producto')
     documento = DocumentoCompra.objects.get(ordenCompra=id)
     data = {
         'proveedor':proveedor,
         'ordenCompra': ordenCompra,
         'documento':documento,
         'detalle': detalle,
-        'productos':producto
+        #'productos':producto
     }
     pdf = render_to_pdf('ordenCompra/listview.html', data)
     return HttpResponse(pdf, content_type='application/pdf')

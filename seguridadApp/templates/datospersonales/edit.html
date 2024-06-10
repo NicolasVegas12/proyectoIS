@@ -1,15 +1,15 @@
 {% extends "plantilla.html" %}
-{% block title %} Boutique | Datos Personales {% endblock title %}
+{% block title %} Minimarket  | Datos Personales {% endblock title %}
 {% load static %}
 
 {% block content %}
 {% load crispy_forms_tags %}
  <div class="p-3">
     <div class="card card-info mx-4 my-4">
-        <div class="card-header">
-            <h1 class="card-title">DATOS PERSONALES</h1>
+        <div class="card-header"  style="background-color:#fff;">
+            <h1 class="card-title" style="color: #000; font-weight: 600; margin: 15px 50px;">DATOS PERSONALES</h1>
         </div>
-        <div class="card-body">
+        <div class="card-body" style="margin: 20px 50px;">
             <form action="" method="post">
                 {% csrf_token %}
                 <div class="row">

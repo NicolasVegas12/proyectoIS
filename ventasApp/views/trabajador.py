@@ -14,7 +14,7 @@ def listartrabajador(request):
     trabajador = Trabajador.objects.all().filter(eliminado=False).order_by('idTrabajador').values()
     if queryset:
         trabajador=Trabajador.objects.filter(Q(apellidos__icontains=queryset)).distinct().filter(eliminado=False).order_by('idTrabajador').values() 
-    paginator = Paginator(trabajador, 5)
+    paginator = Paginator(trabajador, 8)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     return render(request,"trabajador/listar.html",{'page_obj': page_obj})

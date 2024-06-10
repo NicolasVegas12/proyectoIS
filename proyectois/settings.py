@@ -28,7 +28,7 @@ SECRET_KEY = 'django-insecure-%q&_=pvrgk#jz_xuvvol8jr8%#^gvj)7$+1v(vp9!o)p(m7dxm
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [ '127.0.0.1','localhost','.azurewebsites.net']
 
 
 # Application definition
@@ -41,8 +41,11 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'ventasApp',
+    'api',
     'seguridadApp',
     'crispy_forms',
+    'rest_framework',
+    'drf_yasg'
 ]
 
 MIDDLEWARE = [
@@ -84,10 +87,10 @@ WSGI_APPLICATION = 'proyectois.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'test01',
-        'USER': 'root',
-        'PASSWORD': '',
-        'HOST': 'localhost',
+        'NAME': 'bdlabolsita',
+        'USER': 'administrador',
+        'PASSWORD': 'Labolsita123',
+        'HOST': 'base-central.mysql.database.azure.com',
         'PORT': '3306',
     }
 }

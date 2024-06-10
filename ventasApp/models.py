@@ -21,7 +21,7 @@ class Trabajador(models.Model):
     apellidos = models.CharField(max_length=100)
     direccion = models.CharField(max_length=150,blank=True, null=True)
     email = models.EmailField()
-    telefono = models.CharField(max_length=8,blank=True, null=True)    
+    telefono = models.CharField(max_length=9,blank=True, null=True)    
     sexo = models.CharField(max_length=1, choices=SEXO, default=MASCULINO)
     activo = models.BooleanField(default= True)
     eliminado = models.BooleanField(default= False)
@@ -76,8 +76,9 @@ class Cliente(models.Model):
     apellidos = models.CharField(max_length=100)
     direccion = models.CharField(max_length=150)
     email = models.EmailField()
-    telefono = models.CharField(max_length=8)
-    
+    telefono = models.CharField(max_length=9)
+    user = models.CharField(max_length = 120,default = "")
+    password = models.CharField(max_length = 120, default = "")
     tipoDocumentoIdentidad = models.CharField(max_length=50, choices= TIPODOCUMENTOIDENTIDAD, default= DNI)
     documentoIdentidad = models.CharField(max_length=50)
 
@@ -267,7 +268,7 @@ class Proveedor(models.Model):
     nombreComercial = models.CharField(max_length=100)
     direccion = models.CharField(max_length=150)
     email = models.EmailField()
-    telefono = models.CharField(max_length=8)
+    telefono = models.CharField(max_length=9)
 
     activo = models.BooleanField(default= True)
 

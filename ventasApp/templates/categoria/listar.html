@@ -1,22 +1,22 @@
 {% extends "plantilla.html" %}
-{% block title %} Boutique | Categoria {% endblock title %}
+{% block title %} Minimarket  | Categoria {% endblock title %}
 
 {% block content %}
     <div class="p-3">
         <div class="card mt-3">
         <div class="card-header d-flex justify-content-between p-3">
             <div>
-                <h1 class="card-title align-items-center">LISTADO DE CATEGORIAS</h1>
+                <h1 class="card-title align-items-center" style="font-weight: 700;  margin: 5px 30px;">LISTADO DE CATEGORIAS</h1>
             </div>
             {% if perms.ventasApp.add_categoria %}
-            <div class="ml-auto">
+            <div class="ml-auto" style="margin-right: 30px;">
                 <a href="{% url 'agregarcategoria' %}" class='btn btn-sm btn-primary'>
                     <i class='fas fa-plus'></i> NUEVO
                 </a>
             </div>
             {% endif %}        
         </div>
-        <div class="card-body">
+        <div class="card-body" style="margin: 5px 40px;">
             <div class="row">
                 <div class="col-12 col-md-4">
                     <form action="" method="GET">
@@ -117,8 +117,8 @@
     {% endif %}
     <script>
         function eliminarCategoria(id,descripcion){
-            Swal.fire({ "title":"¿Realmente desea eliminar Registro?",
-            "text":"Código :"+ id + " - Descripción :" + descripcion,
+            Swal.fire({ "title":"¿Desea eliminar el registro seleccionado?",
+            "text":"Código de Categoria: "+ id  ,
             "icon":"question",
             "showCancelButton":true,
             "cancelButtonText":"No",
